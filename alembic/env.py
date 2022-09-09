@@ -11,7 +11,7 @@ from api import models  # noqa
 from api.database.database import Base, get_url
 
 
-NAME = None
+NAME = "shop"
 
 
 # this is the Alembic Config object, which provides

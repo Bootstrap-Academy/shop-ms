@@ -29,7 +29,7 @@ T = TypeVar("T")
 logger = get_logger(__name__)
 
 app = FastAPI(
-    title="FastAPI",
+    title="Bootstrap Academy Backend: Shop Microservice",
     description=__doc__,
     version=get_version().description,
     root_path=ROOT_PATH,
@@ -48,7 +48,7 @@ def setup_app() -> None:
 
     if SENTRY_DSN:
         logger.debug("initializing sentry")
-        setup_sentry(app, SENTRY_DSN, "FastAPI", get_version().description)
+        setup_sentry(app, SENTRY_DSN, "Bootstrap Academy Backend: Shop Microservice", get_version().description)
 
     if DEBUG:
         app.add_middleware(
