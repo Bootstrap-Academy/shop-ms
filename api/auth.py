@@ -26,13 +26,18 @@ class HTTPAuth(SecurityBase):
 
 
 class JWTAuth(HTTPAuth):
+    def __init__(self, audience: list[str] | None = None):
+        super().__init__()
+        self.audience: list[str] | None = audience
+
     async def __call__(self, request: Request) -> dict[Any, Any]:
-        if (data := decode_jwt(get_token(request))) is None:
+        if (data := decode_jwt(get_token(request), audience=self.audience)) is None:
             raise InvalidTokenError
         return data
 
 
 jwt_auth = Depends(JWTAuth())
+internal_auth = Depends(JWTAuth(audience=["shop"]))
 
 
 @Depends
