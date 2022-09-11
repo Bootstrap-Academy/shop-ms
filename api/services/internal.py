@@ -16,7 +16,7 @@ class InternalServiceError(Exception):
 
 
 class InternalService(Enum):
-    # SERVICE_XYZ = settings.service_xyz_url
+    AUTH = settings.auth_url
 
     @classmethod
     def _get_token(cls) -> str:
