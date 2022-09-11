@@ -19,13 +19,17 @@ async def get_balance(user_id: str = get_user()) -> Any:
     return Balance(coins=await models.Coins.get(user_id))
 
 
-@router.delete("/coins/{user_id}", responses=internal_responses(Balance, NotEnoughCoinsError))
-async def spend_coins(
-    coins: int = Body(embed=True, ge=0, description="The amount of coins to remove from the user's account"),
+@router.post("/coins/{user_id}", responses=internal_responses(Balance, NotEnoughCoinsError))
+async def add_coins(
+    coins: int = Body(embed=True, description="The amount of coins to add to the user's account"),
     user_id: str = get_user(),
 ) -> Any:
-    """Remove coins from a user's balance."""
+    """
+    Add coins to a user's balance.
 
-    if coins > await models.Coins.get(user_id):
+    Specify a negative amount to remove coins.
+    """
+
+    if await models.Coins.get(user_id) + coins < 0:
         raise NotEnoughCoinsError
-    return Balance(coins=await models.Coins.remove(user_id, coins))
+    return Balance(coins=await models.Coins.add(user_id, coins))
