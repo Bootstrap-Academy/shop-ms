@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from . import test
+from . import coins
 from .internal import INTERNAL_ROUTERS
 from ..auth import jwt_auth
 
@@ -11,7 +11,7 @@ ROUTER = APIRouter()
 TAGS: list[dict[str, Any]] = []
 
 
-for module in [test]:
+for module in [coins]:
     name = module.__name__.split(".")[-1]
     router = APIRouter(tags=[name])
     router.include_router(module.router)
