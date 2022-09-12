@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class BuyCoins(BaseModel):
-    coins: int = Field(gt=0, description="The amount of coins to buy")
+    coins: int = Field(ge=500, le=1_000_000, description="The amount of coins to buy")
 
 
 class Balance(BaseModel):
