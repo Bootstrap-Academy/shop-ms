@@ -10,12 +10,13 @@ from api.schemas.coins import Balance, BuyCoins
 from api.schemas.user import User
 from api.services import paypal
 from api.settings import settings
+from api.utils.docs import responses
 
 
 router = APIRouter()
 
 
-@router.get("/coins/paypal")
+@router.get("/coins/paypal", responses=responses(str))
 async def paypal_get_client_id() -> Any:
     """Return the paypal client id."""
 
