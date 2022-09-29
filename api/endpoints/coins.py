@@ -100,7 +100,7 @@ async def stripe_payment_webhook(request: Request, stripe_signature: str = Heade
     if event.type != "checkout.session.completed":
         raise CouldNotCaptureOrderError
 
-    if not (checkout := await models.StripeCheckout.get(event.checkout_id)):
+    if not (checkout := await models.StripeCheckout.get(event.checkout_id)) or not checkout.pending:
         return OrderNotFoundError
 
     await checkout.capture()
