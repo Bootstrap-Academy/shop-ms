@@ -18,6 +18,10 @@ class Settings(BaseSettings):
 
     auth_url: str = ""
 
+    paypal_base_url: str = "https://api.sandbox.paypal.com"
+    paypal_client_id: str = ""
+    paypal_secret: str = ""
+
     internal_jwt_ttl: int = 10
 
     database_url: str = Field(
