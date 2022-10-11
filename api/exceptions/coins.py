@@ -22,6 +22,6 @@ class OrderNotFoundError(APIException):
 
 
 class CouldNotCaptureOrderError(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_400_BAD_REQUEST
     detail = "Could not capture order"
     description = "The order could not be captured."
