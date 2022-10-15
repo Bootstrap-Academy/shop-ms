@@ -108,16 +108,12 @@ async def stripe_payment_webhook(request: Request, stripe_signature: str = Heade
     return True
 
 
-@router.get(
-    "/coins/{user_id}",
-    dependencies=[require_verified_email],
-    responses=verified_responses(Balance, PermissionDeniedError),
-)
+@router.get("/coins/{user_id}", responses=verified_responses(Balance, PermissionDeniedError))
 async def get_balance(user_id: str = get_user(require_self_or_admin=True)) -> Any:
     """
     Return the balance of a user.
 
-    *Requirements:* **VERIFIED** and (**SELF** or **ADMIN**)
+    *Requirements:* **SELF** or **ADMIN**
     """
 
     return Balance(coins=await models.Coins.get(user_id))
