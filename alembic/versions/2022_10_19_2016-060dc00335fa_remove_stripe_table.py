@@ -18,7 +18,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.drop_index("id", table_name="shop_stripe_checkout")
     op.drop_table("shop_stripe_checkout")
 
 
