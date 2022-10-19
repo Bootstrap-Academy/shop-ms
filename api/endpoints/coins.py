@@ -10,6 +10,7 @@ from api.schemas.coins import Balance, BuyCoins
 from api.schemas.user import User
 from api.services import paypal
 from api.settings import settings
+from api.utils.cache import clear_cache, redis_cached
 from api.utils.docs import responses
 
 
@@ -66,10 +67,13 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     if not await paypal.capture_order(order_id):
         raise CouldNotCaptureOrderError
 
+    await clear_cache("coins")
+
     return Balance(coins=await order.capture())
 
 
 @router.get("/coins/{user_id}", responses=verified_responses(Balance, PermissionDeniedError))
+@redis_cached("coins", "user_id")
 async def get_balance(user_id: str = get_user(require_self_or_admin=True)) -> Any:
     """
     Return the balance of a user.
@@ -89,4 +93,7 @@ async def set_coins(coins: int = Body(embed=True, ge=0), user_id: str = get_user
     """
 
     await models.Coins.set(user_id, coins)
+
+    await clear_cache("coins")
+
     return True
