@@ -1,4 +1,4 @@
-from pydantic import AnyHttpUrl, BaseModel, Field
+from pydantic import BaseModel, Field
 
 
 class BuyCoins(BaseModel):
