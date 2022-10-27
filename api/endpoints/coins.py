@@ -9,9 +9,11 @@ from api.exceptions.coins import CouldNotCaptureOrderError, CouldNotCreateOrderE
 from api.schemas.coins import Balance, BuyCoins
 from api.schemas.user import User
 from api.services import paypal
+from api.services.auth import get_email
 from api.settings import settings
 from api.utils.cache import clear_cache, redis_cached
 from api.utils.docs import responses
+from api.utils.email import BOUGHT_COINS
 
 
 router = APIRouter()
@@ -46,8 +48,6 @@ async def paypal_buy_coins(data: BuyCoins, user: User = user_auth) -> Any:
 
     return order
 
-    # return Balance(coins=await models.Coins.add(user.id, data.coins))
-
 
 @router.post(
     "/coins/paypal/orders/{order_id}/capture",
@@ -67,9 +67,13 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     if not await paypal.capture_order(order_id):
         raise CouldNotCaptureOrderError
 
+    coins = await order.capture()
+
+    if email := await get_email(user.id):
+        await BOUGHT_COINS.send(email, coins=order.coins, eur=order.coins / 100)
     await clear_cache("coins")
 
-    return Balance(coins=await order.capture())
+    return Balance(coins=coins)
 
 
 @router.get("/coins/{user_id}", responses=verified_responses(Balance, PermissionDeniedError))
