@@ -2,8 +2,10 @@ import asyncio
 import random
 import string
 from dataclasses import dataclass
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from typing import Any
 
 import aiosmtplib
@@ -25,13 +27,18 @@ env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 class Message:
     title: str
     template: str
+    attachments: list[Path]
 
     async def send(self, recipient: str, *, reply_to: str | None = None, **kwargs: Any) -> None:
         content = env.get_template(self.template).render(**kwargs)
-        await send_email(recipient, self.title, content, reply_to=reply_to)
+        await send_email(recipient, self.title, content, reply_to=reply_to, attachments=self.attachments)
 
 
-BOUGHT_COINS = Message(title="Bought morphcoins", template="bought_coins.html")
+BOUGHT_COINS = Message(
+    title="Kaufbestätigung - Bootstrap Academy",
+    template="bought_coins.html",
+    attachments=[Path("assets/allgemeine_geschaeftsbedingungen.pdf"), Path("assets/widerrufsbelehrung.pdf")],
+)
 
 
 @run_in_thread
@@ -43,7 +50,9 @@ def check_email_deliverability(email: str) -> bool:
     return True
 
 
-async def send_email(recipient: str, title: str, body: str, *, reply_to: str | None = None) -> None:
+async def send_email(
+    recipient: str, title: str, body: str, *, attachments: list[Path] | None = None, reply_to: str | None = None
+) -> None:
     if not await check_email_deliverability(recipient):
         raise ValueError("Invalid email address")
 
@@ -56,6 +65,12 @@ async def send_email(recipient: str, title: str, body: str, *, reply_to: str | N
     if reply_to:
         message["Reply-To"] = reply_to
     message.attach(MIMEText(body, "html"))
+
+    for path in attachments or []:
+        with path.open(mode="rb") as file:
+            part = MIMEApplication(file.read(), Name=path.name)
+        part["Content-Disposition"] = f"attachment; filename={path.name}"
+        message.attach(part)
 
     asyncio.create_task(
         aiosmtplib.send(

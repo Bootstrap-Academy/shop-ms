@@ -39,6 +39,7 @@ COPY alembic /app/alembic
 COPY alembic.ini /app/
 COPY --from=builder /build/VERSION /app/
 
+COPY assets /app/assets/
 COPY templates /app/templates/
 COPY api /app/api/
 
