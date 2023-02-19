@@ -9,6 +9,12 @@ class NotEnoughCoinsError(APIException):
     description = "The user does not have enough coins to perform this action."
 
 
+class UserInfoMissingError(APIException):
+    status_code = status.HTTP_412_PRECONDITION_FAILED
+    detail = "User Infos missing"
+    description = "The user cannot buy coins because some information about them are missing"
+
+
 class CouldNotCreateOrderError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     detail = "Could not create order"

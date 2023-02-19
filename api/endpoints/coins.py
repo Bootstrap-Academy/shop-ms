@@ -5,11 +5,16 @@ from fastapi import APIRouter, Body
 from api import models
 from api.auth import admin_auth, get_user, require_verified_email, user_auth
 from api.exceptions.auth import PermissionDeniedError, admin_responses, verified_responses
-from api.exceptions.coins import CouldNotCaptureOrderError, CouldNotCreateOrderError, OrderNotFoundError
+from api.exceptions.coins import (
+    CouldNotCaptureOrderError,
+    CouldNotCreateOrderError,
+    OrderNotFoundError,
+    UserInfoMissingError,
+)
 from api.schemas.coins import Balance, BuyCoins
 from api.schemas.user import User
 from api.services import paypal
-from api.services.auth import get_email
+from api.services.auth import get_userinfo
 from api.settings import settings
 from api.utils.cache import clear_cache, redis_cached
 from api.utils.docs import responses
@@ -29,7 +34,7 @@ async def paypal_get_client_id() -> Any:
 @router.post(
     "/coins/paypal/orders",
     dependencies=[require_verified_email],
-    responses=verified_responses(str, CouldNotCreateOrderError),
+    responses=verified_responses(str, CouldNotCreateOrderError, UserInfoMissingError),
 )
 async def paypal_buy_coins(data: BuyCoins, user: User = user_auth) -> Any:
     """
@@ -39,6 +44,9 @@ async def paypal_buy_coins(data: BuyCoins, user: User = user_auth) -> Any:
 
     *Requirements:* **VERIFIED**
     """
+
+    if not (info := await get_userinfo(user.id)) or not info.can_buy_coins:
+        raise UserInfoMissingError
 
     order = await paypal.create_order(data.coins)
     if not order:
@@ -52,7 +60,7 @@ async def paypal_buy_coins(data: BuyCoins, user: User = user_auth) -> Any:
 @router.post(
     "/coins/paypal/orders/{order_id}/capture",
     dependencies=[require_verified_email],
-    responses=verified_responses(Balance, OrderNotFoundError, CouldNotCaptureOrderError),
+    responses=verified_responses(Balance, OrderNotFoundError, CouldNotCaptureOrderError, UserInfoMissingError),
 )
 async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     """
@@ -64,12 +72,15 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     if not (order := await models.PaypalOrder.get(order_id, user.id)) or not order.pending:
         raise OrderNotFoundError
 
+    if not (info := await get_userinfo(user.id)) or not info.can_buy_coins:
+        raise UserInfoMissingError
+
     if not await paypal.capture_order(order_id):
         raise CouldNotCaptureOrderError
 
     coins = await order.capture()
 
-    if email := await get_email(user.id):
+    if email := info.email:
         await BOUGHT_COINS.send(email, coins=order.coins, eur=order.coins / 100)
     await clear_cache("coins")
 

@@ -1,20 +1,29 @@
 from typing import cast
 
+from pydantic import BaseModel, Extra, Field
+
 from api.services.internal import InternalService
 from api.utils.cache import redis_cached
 
 
-@redis_cached("user", "user_id")
-async def exists_user(user_id: str) -> bool:
-    async with InternalService.AUTH.client as client:
-        response = await client.get(f"/users/{user_id}")
-        return response.status_code == 200
+class UserInfo(BaseModel):
+    email: str | None
+    can_buy_coins: bool
+    can_receive_coins: bool
+
+    class Config:
+        extra = Extra.ignore
 
 
 @redis_cached("user", "user_id")
-async def get_email(user_id: str) -> str | None:
+async def get_userinfo(user_id: str) -> UserInfo | None:
     async with InternalService.AUTH.client as client:
         response = await client.get(f"/users/{user_id}")
         if response.status_code != 200:
             return None
-        return cast(str | None, response.json()["email"])
+
+        return UserInfo(**response.json())
+
+
+async def exists_user(user_id: str) -> bool:
+    return await get_userinfo(user_id) is not None
