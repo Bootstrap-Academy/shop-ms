@@ -7,6 +7,7 @@ from api.auth import get_user
 from api.exceptions.auth import internal_responses
 from api.exceptions.coins import NotEnoughCoinsError
 from api.schemas.coins import Balance
+from api.services.auth import get_userinfo
 from api.utils.cache import clear_cache, redis_cached
 
 
@@ -35,6 +36,8 @@ async def add_coins(
     if await models.Coins.get(user_id) + coins < 0:
         raise NotEnoughCoinsError
 
+    withhold = coins >= 0 and (not (info := await get_userinfo(user_id)) or not info.can_receive_coins)
+
     await clear_cache("coins")
 
-    return Balance(coins=await models.Coins.add(user_id, coins))
+    return Balance(coins=await models.Coins.add(user_id, coins, withhold))

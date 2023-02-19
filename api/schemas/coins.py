@@ -7,3 +7,7 @@ class BuyCoins(BaseModel):
 
 class Balance(BaseModel):
     coins: int = Field(description="The amount of coins the user has")
+    withheld_coins: int = Field(
+        description="The amount of coins the user has but are withheld "
+        "until they provide the required information about them"
+    )

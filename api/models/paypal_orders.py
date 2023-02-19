@@ -32,4 +32,4 @@ class PaypalOrder(Base):
 
     async def capture(self) -> int | None:
         self.pending = False
-        return await Coins.add(self.user_id, self.coins)
+        return await Coins.add(self.user_id, self.coins, False)

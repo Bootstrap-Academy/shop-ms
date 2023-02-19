@@ -11,6 +11,7 @@ class Coins(Base):
 
     user_id: Mapped[str] = Column(String(36), primary_key=True, unique=True)
     coins: Mapped[int] = Column(BigInteger)
+    withheld_coins: Mapped[int] = Column(BigInteger)
 
     @staticmethod
     async def get(user_id: str) -> int:
@@ -26,14 +27,13 @@ class Coins(Base):
             await db.add(Coins(user_id=user_id, coins=coins))
 
     @staticmethod
-    async def add(user_id: str, amount: int) -> int:
+    async def add(user_id: str, amount: int, withhold: bool) -> int:
         if row := await db.get(Coins, user_id=user_id):
-            row.coins += amount
+            if not withhold:
+                row.coins += amount
+            else:
+                row.withheld_coins += amount
             return row.coins
         else:
-            await db.add(Coins(user_id=user_id, coins=amount))
+            await db.add(Coins(user_id=user_id, coins=amount * (not withhold), withheld_coins=amount * withhold))
             return amount
-
-    @staticmethod
-    async def remove(user_id: str, amount: int) -> int:
-        return await Coins.add(user_id, -amount)
