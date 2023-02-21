@@ -30,6 +30,6 @@ class PaypalOrder(Base):
     async def get(cls, order_id: str, user_id: str) -> PaypalOrder | None:
         return await db.get(cls, id=order_id, user_id=user_id)
 
-    async def capture(self) -> int | None:
+    async def capture(self) -> Coins:
         self.pending = False
         return await Coins.add(self.user_id, self.coins, False)

@@ -84,7 +84,7 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
         await BOUGHT_COINS.send(email, coins=order.coins, eur=order.coins / 100)
     await clear_cache("coins")
 
-    return Balance(coins=coins)
+    return coins.serialize
 
 
 @router.get("/coins/{user_id}", responses=verified_responses(Balance, PermissionDeniedError))
@@ -96,7 +96,7 @@ async def get_balance(user_id: str = get_user(require_self_or_admin=True)) -> An
     *Requirements:* **SELF** or **ADMIN**
     """
 
-    return Balance(coins=await models.Coins.get(user_id))
+    return (await models.Coins.get(user_id)).serialize
 
 
 @router.put("/coins/{user_id}", dependencies=[admin_auth], responses=admin_responses(bool))

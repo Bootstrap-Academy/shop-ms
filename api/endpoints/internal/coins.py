@@ -19,7 +19,7 @@ router = APIRouter()
 async def get_balance(user_id: str = get_user()) -> Any:
     """Return the balance of a user."""
 
-    return Balance(coins=await models.Coins.get(user_id))
+    return (await models.Coins.get(user_id)).serialize
 
 
 @router.post("/coins/{user_id}", responses=internal_responses(Balance, NotEnoughCoinsError))
@@ -33,11 +33,11 @@ async def add_coins(
     Specify a negative amount to remove coins.
     """
 
-    if await models.Coins.get(user_id) + coins < 0:
+    if (await models.Coins.get(user_id)).coins + coins < 0:
         raise NotEnoughCoinsError
 
     withhold = coins >= 0 and (not (info := await get_userinfo(user_id)) or not info.can_receive_coins)
 
     await clear_cache("coins")
 
-    return Balance(coins=await models.Coins.add(user_id, coins, withhold))
+    return (await models.Coins.add(user_id, coins, withhold)).serialize

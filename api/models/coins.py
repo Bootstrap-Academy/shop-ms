@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from sqlalchemy import BigInteger, Column, String
 from sqlalchemy.orm import Mapped
 
@@ -13,27 +15,30 @@ class Coins(Base):
     coins: Mapped[int] = Column(BigInteger)
     withheld_coins: Mapped[int] = Column(BigInteger)
 
+    @property
+    def serialize(self) -> dict[str, Any]:
+        return {"coins": self.coins, "withheld_coins": self.withheld_coins}
+
     @staticmethod
-    async def get(user_id: str) -> int:
+    async def get(user_id: str) -> Coins:
         if row := await db.get(Coins, user_id=user_id):
-            return row.coins
-        return 0
+            return row
+        return await db.add(Coins(user_id=user_id, coins=0, withheld_coins=0))
 
     @staticmethod
     async def set(user_id: str, coins: int) -> None:
         if row := await db.get(Coins, user_id=user_id):
             row.coins = coins
         else:
-            await db.add(Coins(user_id=user_id, coins=coins))
+            await db.add(Coins(user_id=user_id, coins=coins, withheld_coins=0))
 
     @staticmethod
-    async def add(user_id: str, amount: int, withhold: bool) -> int:
+    async def add(user_id: str, amount: int, withhold: bool) -> Coins:
         if row := await db.get(Coins, user_id=user_id):
             if not withhold:
                 row.coins += amount
             else:
                 row.withheld_coins += amount
-            return row.coins
+            return row
         else:
-            await db.add(Coins(user_id=user_id, coins=amount * (not withhold), withheld_coins=amount * withhold))
-            return amount
+            return await db.add(Coins(user_id=user_id, coins=amount * (not withhold), withheld_coins=amount * withhold))
