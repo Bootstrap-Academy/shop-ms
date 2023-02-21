@@ -42,3 +42,9 @@ class Coins(Base):
             return row
         else:
             return await db.add(Coins(user_id=user_id, coins=amount * (not withhold), withheld_coins=amount * withhold))
+
+    @staticmethod
+    async def release(user_id: str) -> None:
+        if row := await db.get(Coins, user_id=user_id):
+            row.coins += row.withheld_coins
+            row.withheld_coins = 0

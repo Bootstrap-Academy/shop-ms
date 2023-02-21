@@ -41,3 +41,12 @@ async def add_coins(
     await clear_cache("coins")
 
     return (await models.Coins.add(user_id, coins, withhold)).serialize
+
+
+@router.put("/coins/{user_id}/withheld", responses=internal_responses(bool))
+async def release_withheld_coins(user_id: str = get_user()) -> Any:
+    """Release withheld coins."""
+
+    await models.Coins.release(user_id)
+
+    return True
