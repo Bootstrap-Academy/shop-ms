@@ -27,11 +27,20 @@ env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 class Message:
     title: str
     template: str
-    attachments: list[Path]
+    attachments: list[Path | tuple[str, bytes]]
 
-    async def send(self, recipient: str, *, reply_to: str | None = None, **kwargs: Any) -> None:
+    async def send(
+        self,
+        recipient: str,
+        *,
+        reply_to: str | None = None,
+        attachments: list[Path | tuple[str, bytes]] | None = None,
+        **kwargs: Any,
+    ) -> None:
         content = env.get_template(self.template).render(**kwargs)
-        await send_email(recipient, self.title, content, reply_to=reply_to, attachments=self.attachments)
+        await send_email(
+            recipient, self.title, content, reply_to=reply_to, attachments=(attachments or []) + self.attachments
+        )
 
 
 BOUGHT_COINS = Message(
@@ -51,7 +60,12 @@ def check_email_deliverability(email: str) -> bool:
 
 
 async def send_email(
-    recipient: str, title: str, body: str, *, attachments: list[Path] | None = None, reply_to: str | None = None
+    recipient: str,
+    title: str,
+    body: str,
+    *,
+    attachments: list[Path | tuple[str, bytes]] | None = None,
+    reply_to: str | None = None,
 ) -> None:
     if not await check_email_deliverability(recipient):
         raise ValueError("Invalid email address")
@@ -67,9 +81,13 @@ async def send_email(
     message.attach(MIMEText(body, "html"))
 
     for path in attachments or []:
-        with path.open(mode="rb") as file:
-            part = MIMEApplication(file.read(), Name=path.name)
-        part["Content-Disposition"] = f"attachment; filename={path.name}"
+        if isinstance(path, Path):
+            with path.open(mode="rb") as file:
+                part = MIMEApplication(file.read(), Name=path.name)
+            part["Content-Disposition"] = f"attachment; filename={path.name}"
+        else:
+            part = MIMEApplication(path[1], Name=path[0])
+            part["Content-Disposition"] = f"attachment; filename={path[0]}"
         message.attach(part)
 
     asyncio.create_task(

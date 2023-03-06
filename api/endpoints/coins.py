@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Body
@@ -19,6 +20,7 @@ from api.settings import settings
 from api.utils.cache import clear_cache, redis_cached
 from api.utils.docs import responses
 from api.utils.email import BOUGHT_COINS
+from api.utils.invoices import generate_invoice_pdf
 
 
 router = APIRouter()
@@ -81,7 +83,21 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     coins = await order.capture()
 
     if email := info.email:
-        await BOUGHT_COINS.send(email, coins=order.coins, eur=order.coins / 100)
+        # TODO invoice number
+        mwst = Decimal("0.19")
+        invoice = await generate_invoice_pdf(
+            "1337",
+            "Rechnung",
+            "EUR",
+            mwst,
+            4,
+            2,
+            [("MorphCoins", Decimal("0.01") / (mwst + 1), order.coins)],
+            [f"{info.first_name} {info.last_name}", info.street, f"{info.zip_code} {info.city}", info.country],
+        )
+        await BOUGHT_COINS.send(
+            email, coins=order.coins, eur=order.coins / 100, attachments=[("rechnung.pdf", invoice)]
+        )
     await clear_cache("coins")
 
     return coins.serialize

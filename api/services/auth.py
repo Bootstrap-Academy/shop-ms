@@ -8,6 +8,12 @@ from api.utils.cache import redis_cached
 
 class UserInfo(BaseModel):
     email: str | None
+    first_name: str | None
+    last_name: str | None
+    street: str | None
+    zip_code: str | None
+    city: str | None
+    country: str | None
     can_buy_coins: bool
     can_receive_coins: bool
 
