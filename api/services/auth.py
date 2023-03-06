@@ -7,6 +7,8 @@ from api.utils.cache import redis_cached
 
 
 class UserInfo(BaseModel):
+    name: str
+    display_name: str
     email: str | None
     first_name: str | None
     last_name: str | None

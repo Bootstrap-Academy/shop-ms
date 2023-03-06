@@ -85,6 +85,12 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     if email := info.email:
         # TODO invoice number
         mwst = Decimal("0.19")
+        rec = [
+            f"{info.first_name} {info.last_name}" if info.first_name or info.last_name else f"{info.display_name}",
+            info.street,
+            f"{info.zip_code} {info.city}",
+            info.country,
+        ]
         invoice = await generate_invoice_pdf(
             "1337",
             "Rechnung",
@@ -93,7 +99,7 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
             4,
             2,
             [("MorphCoins", Decimal("0.01") / (mwst + 1), order.coins)],
-            [f"{info.first_name} {info.last_name}", info.street, f"{info.zip_code} {info.city}", info.country],
+            [r for r in rec if r and r.strip()],
         )
         await BOUGHT_COINS.send(
             email, coins=order.coins, eur=order.coins / 100, attachments=[("rechnung.pdf", invoice)]
