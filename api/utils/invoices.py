@@ -55,10 +55,17 @@ def generate_invoice_pdf(
     page = Page()
     pdf.add_page(page)
 
-    page_layout = SingleColumnLayout(page)
-    page_layout.vertical_margin = page.get_page_info().get_height() * Decimal(0.02)
+    page_layout = SingleColumnLayout(page, vertical_margin=page.get_page_info().get_height() * Decimal(0.05))
 
-    t = Table(number_of_rows=1, number_of_columns=2)
+    t = Table(number_of_rows=2, number_of_columns=2)
+
+    t.add(Paragraph(""))
+    t.add(
+        Image(
+            Path("assets/logo-text.png"), width=183, height=51, horizontal_alignment=Alignment.RIGHT, padding_bottom=24
+        )
+    )
+
     t.add(Paragraph(title, font_size=32))
 
     t2 = Table(number_of_rows=5, number_of_columns=1)
