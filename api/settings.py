@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
 
+    invoice_secret: str = secrets.token_urlsafe(64)
+    invoice_test: bool = False
+
     internal_jwt_ttl: int = 10
 
     smtp_host: str = ""

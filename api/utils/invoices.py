@@ -12,30 +12,8 @@ from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWid
 from borb.pdf.canvas.layout.table.table import TableCell
 from borb.pdf.canvas.layout.text.paragraph import Paragraph
 
+from api.settings import settings
 from api.utils.async_thread import run_in_thread
-
-
-# title = "Rechnung"
-# currency = "EUR"
-# mwst = Decimal("0.19")
-# sprec = 4
-# prec = 2
-# products = [
-#     ("MorphCoins", Decimal("0.01") / Decimal("1.19"), 1337),
-# ]
-
-# title = "Gutschrift"
-# currency = "MC"
-# mwst = None  # Decimal("0.19")
-# sprec = 0
-# prec = 0
-# products = [
-#     ("Webinar XYZ", 1337, 1),
-#     ("Webinar XYZ2", 13370, 2),
-#     ("Coaching ASDF", 1234, 1),
-#     ("Coaching ASDF2", 12340, 2),
-#     ("Coding Challenges", 42, 1),
-# ]
 
 
 @run_in_thread
@@ -48,6 +26,7 @@ def generate_invoice_pdf(
     prec: int,
     products: list[tuple[str, Decimal, int]],
     recipient: list[str],
+    issue_date: date | None = None,
 ) -> bytes:
     pdf = Document()
     page = Page()
@@ -91,9 +70,9 @@ def generate_invoice_pdf(
 
     t2 = Table(number_of_rows=3, number_of_columns=2)
     t2.add(Paragraph("Datum", font="Helvetica-Bold"))
-    t2.add(Paragraph(date.today().strftime("%d.%m.%Y"), horizontal_alignment=Alignment.RIGHT))
+    t2.add(Paragraph((issue_date or date.today()).strftime("%d.%m.%Y"), horizontal_alignment=Alignment.RIGHT))
     t2.add(Paragraph("Rechnungs-Nr.", font="Helvetica-Bold"))
-    t2.add(Paragraph(num, horizontal_alignment=Alignment.RIGHT))
+    t2.add(Paragraph(num if not settings.invoice_test else f"TEST-{num}", horizontal_alignment=Alignment.RIGHT))
     t2.add(Paragraph("Gesamtbetrag", font="Helvetica-Bold"))
     t2.add(
         Paragraph(
