@@ -1,12 +1,10 @@
-import random
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from io import BytesIO
 from pathlib import Path
 
 from borb.pdf import PDF, Document, Page
 from borb.pdf.canvas.color.color import HexColor, X11Color
-from borb.pdf.canvas.layout.annotation.link_annotation import DestinationType
 from borb.pdf.canvas.layout.image.image import Image
 from borb.pdf.canvas.layout.layout_element import Alignment
 from borb.pdf.canvas.layout.page_layout.multi_column_layout import SingleColumnLayout

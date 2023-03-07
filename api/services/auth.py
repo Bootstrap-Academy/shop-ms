@@ -1,6 +1,4 @@
-from typing import cast
-
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Extra
 
 from api.services.internal import InternalService
 from api.utils.cache import redis_cached
