@@ -25,6 +25,8 @@ async def get_balance(user_id: str = get_user()) -> Any:
 @router.post("/coins/{user_id}", responses=internal_responses(Balance, NotEnoughCoinsError))
 async def add_coins(
     coins: int = Body(embed=True, description="The amount of coins to add to the user's account"),
+    description: str = Body(description="Description of the transaction"),
+    credit_note: bool | None = Body(None, description="Whether to include this transaction in a credit note"),
     user_id: str = get_user(),
 ) -> Any:
     """
@@ -40,6 +42,10 @@ async def add_coins(
 
     await clear_cache("coins")
 
+    if credit_note is None:
+        credit_note = coins > 0
+
+    await models.Transaction.create(user_id, coins, description, credit_note)
     return (await models.Coins.add(user_id, coins, withhold)).serialize
 
 

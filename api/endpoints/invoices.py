@@ -1,12 +1,16 @@
 import calendar
 import hmac
-from datetime import date
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Path, Response
+from sqlalchemy import and_, asc
 
+from api import models
 from api.auth import require_verified_email, user_auth
+from api.database import db
+from api.database.database import filter_by
 from api.exceptions.auth import verified_responses
 from api.exceptions.coins import UserInfoMissingError
 from api.schemas.user import User
@@ -46,7 +50,21 @@ async def download_credit_note(
         info.country,
     ]
 
-    transactions = [("Webinar blubb", 14), ("Coaching asdf", 100), ("Coding Challenge aosdifjiaosdfo", 1337)]
+    last_day = calendar.monthrange(year, month)[1]
+
+    transactions = [
+        (transaction.description, transaction.coins)
+        async for transaction in await db.stream(
+            filter_by(models.Transaction, user_id=user_id, credit_note=True)
+            .where(
+                and_(
+                    models.Transaction.created_at >= datetime.combine(date(year, month, 1), time.min),
+                    models.Transaction.created_at <= datetime.combine(date(year, month, last_day), time.max),
+                )
+            )
+            .order_by(asc(models.Transaction.created_at))
+        )
+    ]
 
     # TODO invoice number
     return Response(
@@ -59,7 +77,7 @@ async def download_credit_note(
             2,
             [(name, Decimal("0.01") / (mwst + 1), coins) for name, coins in transactions],
             [r for r in rec if r and r.strip()],
-            date(year, month, calendar.monthrange(year, month)[1]),
+            date(year, month, last_day),
         ),
         media_type="application/pdf",
     )

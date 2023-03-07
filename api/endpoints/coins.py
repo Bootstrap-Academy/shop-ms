@@ -9,6 +9,7 @@ from api.exceptions.auth import PermissionDeniedError, admin_responses, verified
 from api.exceptions.coins import (
     CouldNotCaptureOrderError,
     CouldNotCreateOrderError,
+    NotEnoughCoinsError,
     OrderNotFoundError,
     UserInfoMissingError,
 )
@@ -80,6 +81,7 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     if not await paypal.capture_order(order_id):
         raise CouldNotCaptureOrderError
 
+    await models.Transaction.create(user.id, order.coins, "PayPal", False)
     coins = await order.capture()
 
     if email := info.email:
@@ -121,15 +123,27 @@ async def get_balance(user_id: str = get_user(require_self_or_admin=True)) -> An
     return (await models.Coins.get(user_id)).serialize
 
 
-@router.put("/coins/{user_id}", dependencies=[admin_auth], responses=admin_responses(bool))
-async def set_coins(coins: int = Body(embed=True, ge=0), user_id: str = get_user(check_existence=True)) -> Any:
+@router.post("/coins/{user_id}", dependencies=[admin_auth], responses=admin_responses(bool, NotEnoughCoinsError))
+async def add_coins(
+    coins: int = Body(embed=True),
+    description: str = Body(description="Description of the transaction"),
+    credit_note: bool | None = Body(None, description="Whether to include this transaction in a credit note"),
+    user_id: str = get_user(check_existence=True),
+) -> Any:
     """
-    Set the balance of a user.
+    Add coins to the balance of a user.
 
     *Requirements:* **ADMIN**
     """
 
-    await models.Coins.set(user_id, coins)
+    if (await models.Coins.get(user_id)).coins + coins < 0:
+        raise NotEnoughCoinsError
+
+    if credit_note is None:
+        credit_note = coins > 0
+
+    await models.Transaction.create(user_id, coins, description, credit_note)
+    await models.Coins.add(user_id, coins, False)
 
     await clear_cache("coins")
 
