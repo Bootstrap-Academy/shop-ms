@@ -66,10 +66,11 @@ async def download_credit_note(
         )
     ]
 
-    # TODO invoice number
+    public_id = await models.CreditNoteUser.get(user_id)
+
     return Response(
         await generate_invoice_pdf(
-            "1337",
+            f"G{year:04}{month:02}-{public_id}",
             "Gutschrift",
             "EUR",
             mwst,
