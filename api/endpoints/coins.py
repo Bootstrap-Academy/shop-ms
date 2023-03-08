@@ -92,6 +92,8 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
             f"{info.zip_code} {info.city}",
             info.country,
         ]
+        if info.business:
+            rec.append(f"USt.-IdNr.: {info.vat_id}")
         invoice = await generate_invoice_pdf(
             f"R{order.invoice_no:07}",
             "Rechnung",

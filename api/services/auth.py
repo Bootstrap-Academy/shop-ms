@@ -8,12 +8,14 @@ class UserInfo(BaseModel):
     name: str
     display_name: str
     email: str | None
+    business: bool | None
     first_name: str | None
     last_name: str | None
     street: str | None
     zip_code: str | None
     city: str | None
     country: str | None
+    vat_id: str | None
     can_buy_coins: bool
     can_receive_coins: bool
 

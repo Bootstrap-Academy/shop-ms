@@ -49,6 +49,8 @@ async def download_credit_note(
         f"{info.zip_code} {info.city}",
         info.country,
     ]
+    if info.business:
+        rec.append(f"USt.-IdNr.: {info.vat_id}")
 
     last_day = calendar.monthrange(year, month)[1]
 
