@@ -72,7 +72,7 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     *Requirements:* **VERIFIED**
     """
 
-    if not (order := await models.PaypalOrder.get(order_id, user.id)) or not order.pending:
+    if not (order := await models.PaypalOrder.get(order_id, user.id)) or not order.pending or order.invoice_no is None:
         raise OrderNotFoundError
 
     if not (info := await get_userinfo(user.id)) or not info.can_buy_coins:
@@ -85,7 +85,6 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
     coins = await order.capture()
 
     if email := info.email:
-        # TODO invoice number
         mwst = Decimal("0.19")
         rec = [
             f"{info.first_name} {info.last_name}" if info.first_name or info.last_name else f"{info.display_name}",
@@ -94,7 +93,7 @@ async def paypal_capture_order(order_id: str, user: User = user_auth) -> Any:
             info.country,
         ]
         invoice = await generate_invoice_pdf(
-            "1337",
+            f"R{order.invoice_no:07}",
             "Rechnung",
             "EUR",
             mwst,

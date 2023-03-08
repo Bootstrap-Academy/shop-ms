@@ -25,7 +25,6 @@ class Coins(Base):
             return row
         return await db.add(Coins(user_id=user_id, coins=0, withheld_coins=0))
 
-
     @staticmethod
     async def add(user_id: str, amount: int, withhold: bool) -> Coins:
         if row := await db.get(Coins, user_id=user_id):
