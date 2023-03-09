@@ -45,12 +45,14 @@ def generate_invoice_pdf(
 
     t.add(Paragraph(title, font_size=32))
 
-    t2 = Table(number_of_rows=5, number_of_columns=1)
+    t2 = Table(number_of_rows=7, number_of_columns=1)
     t2.add(Paragraph("bootstrap academy GmbH", font="Helvetica-bold", horizontal_alignment=Alignment.RIGHT))
     t2.add(Paragraph("Wittelsbacherplatz 1", horizontal_alignment=Alignment.RIGHT))
     t2.add(Paragraph("80333 München", horizontal_alignment=Alignment.RIGHT))
     t2.add(Paragraph("+49 89 24 88 62 51 0", horizontal_alignment=Alignment.RIGHT))
     t2.add(Paragraph("hallo@bootstrap.academy", horizontal_alignment=Alignment.RIGHT))
+    t2.add(Paragraph("USt.-IdNr.: DE354823768", horizontal_alignment=Alignment.RIGHT))
+    t2.add(Paragraph("Handelsregister: HRB 275681", horizontal_alignment=Alignment.RIGHT))
     t2.no_borders()
     t.add(t2)
 
