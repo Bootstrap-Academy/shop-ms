@@ -13,6 +13,7 @@ from api.database import db
 from api.database.database import filter_by
 from api.exceptions.auth import verified_responses
 from api.exceptions.coins import UserInfoMissingError
+from api.exceptions.invoices import CreditNoteNotYetAvailableError
 from api.schemas.user import User
 from api.services.auth import get_userinfo
 from api.settings import settings
@@ -35,6 +36,12 @@ async def download_credit_note(
 ) -> Any:
     """Download the credit note pdf for a specific month."""
 
+    last_day = calendar.monthrange(year, month)[1]
+    issue_date = date(year, month, last_day)
+
+    if issue_date >= date.today():
+        raise CreditNoteNotYetAvailableError
+
     user_id, token = token.split("_")
     if token != hmac.digest(settings.invoice_secret.encode(), user_id.encode(), "sha256").hex():
         return Response(status_code=401)
@@ -51,8 +58,6 @@ async def download_credit_note(
     ]
     if info.business:
         rec.append(f"USt.-IdNr.: {info.vat_id}")
-
-    last_day = calendar.monthrange(year, month)[1]
 
     transactions = [
         (transaction.description, transaction.coins)
@@ -80,7 +85,7 @@ async def download_credit_note(
             2,
             [(name, Decimal("0.01") / (mwst + 1), coins) for name, coins in transactions],
             [r for r in rec if r and r.strip()],
-            date(year, month, last_day),
+            issue_date,
         ),
         media_type="application/pdf",
     )
