@@ -27,6 +27,12 @@ class OrderNotFoundError(APIException):
     description = "The order does not exist."
 
 
+class InvoiceNotFoundError(APIException):
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Invoice not found"
+    description = "The invoice does not exist."
+
+
 class CouldNotCaptureOrderError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = "Could not capture order"

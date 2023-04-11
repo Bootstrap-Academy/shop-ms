@@ -12,7 +12,7 @@ from api.auth import require_verified_email, user_auth
 from api.database import db
 from api.database.database import filter_by
 from api.exceptions.auth import verified_responses
-from api.exceptions.coins import UserInfoMissingError
+from api.exceptions.coins import InvoiceNotFoundError, UserInfoMissingError
 from api.exceptions.invoices import CreditNoteNotYetAvailableError
 from api.schemas.user import User
 from api.services.auth import get_userinfo
@@ -86,6 +86,46 @@ async def download_credit_note(
             [(name, Decimal("0.01") / (mwst + 1), coins) for name, coins in transactions],
             [r for r in rec if r and r.strip()],
             issue_date,
+        ),
+        media_type="application/pdf",
+    )
+
+
+@router.get("/invoices/{token}/{invoice_no}/invoice.pdf")
+async def download_invoice(invoice_no: int = Path(ge=0), token: str = Path(regex=r"^[^_]+_[^_]+$")) -> Any:
+    """Download a specific invoice."""
+
+    user_id, token = token.split("_")
+    if token != hmac.digest(settings.invoice_secret.encode(), user_id.encode(), "sha256").hex():
+        return Response(status_code=401)
+
+    if not (order := await db.get(models.PaypalOrder, invoice_no=invoice_no, user_id=user_id)):
+        raise InvoiceNotFoundError
+
+    if not (info := await get_userinfo(user_id)):
+        raise UserInfoMissingError
+
+    mwst = Decimal("0.19")
+    rec = [
+        f"{info.first_name} {info.last_name}" if info.first_name or info.last_name else f"{info.display_name}",
+        info.street,
+        f"{info.zip_code} {info.city}",
+        info.country,
+    ]
+    if info.business:
+        rec.append(f"USt.-IdNr.: {info.vat_id}")
+
+    return Response(
+        await generate_invoice_pdf(
+            f"R{order.invoice_no:07}",
+            "Rechnung",
+            "EUR",
+            mwst,
+            4,
+            2,
+            [("MorphCoins", Decimal("0.01") / (mwst + 1), order.coins)],
+            [r for r in rec if r and r.strip()],
+            order.created_at.date(),
         ),
         media_type="application/pdf",
     )
