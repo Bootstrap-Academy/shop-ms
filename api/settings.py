@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
 
+    premium_monthly_price: int = 1000
+    premium_yearly_price: int = 10000
+
     invoice_secret: str = secrets.token_urlsafe(64)
     invoice_test: bool = False
 
