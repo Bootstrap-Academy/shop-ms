@@ -10,3 +10,4 @@ class PremiumStatus(BaseModel):
     premium: bool
     since: float | None
     until: float | None
+    autopay: str | None
