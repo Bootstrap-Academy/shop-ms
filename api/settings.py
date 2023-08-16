@@ -1,4 +1,5 @@
 import secrets
+from datetime import time
 from typing import Literal
 
 from pydantic import BaseSettings, Field
@@ -27,6 +28,13 @@ class Settings(BaseSettings):
     stripe_public_key: str = ""
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
+
+    premium_monthly_price: int = 1000
+    premium_yearly_price: int = 10000
+
+    hearts_max: int = 6
+    hearts_refill_price: int = 50
+    hearts_refill_time: time = time.fromisoformat("00:00+02:00")
 
     invoice_secret: str = secrets.token_urlsafe(64)
     invoice_test: bool = False

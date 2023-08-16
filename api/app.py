@@ -3,6 +3,7 @@
 See [Auth Microservice](/auth/docs).
 """
 
+import asyncio
 from typing import Awaitable, Callable, TypeVar
 
 from fastapi import FastAPI, HTTPException, Request
@@ -14,6 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .database import db, db_context
 from .endpoints import ROUTER, TAGS
 from .logger import get_logger, setup_sentry
+from .models.premium_autopay import run_autopay
 from .settings import settings
 from .utils.debug import check_responses
 from .utils.docs import add_endpoint_links_to_openapi_docs
@@ -64,9 +66,20 @@ async def rollback_on_exception(request: Request, exc: HTTPException) -> Respons
     return await http_exception_handler(request, exc)
 
 
+async def autopay_loop() -> None:
+    while True:
+        try:
+            await run_autopay()
+        except Exception as e:
+            logger.exception(e)
+        await asyncio.sleep(60 * 60)
+
+
 @app.on_event("startup")
 async def on_startup() -> None:
     setup_app()
+
+    asyncio.create_task(autopay_loop())
 
 
 @app.on_event("shutdown")
