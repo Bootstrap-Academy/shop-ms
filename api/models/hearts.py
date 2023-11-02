@@ -54,6 +54,6 @@ class Hearts(Base):
 
 def _next_refill(last: datetime) -> datetime:
     out = datetime.combine(last.date(), settings.hearts_refill_time)
-    if out <= last:
+    while out <= last:
         out += timedelta(days=1)
     return out
