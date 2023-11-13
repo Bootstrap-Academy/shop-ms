@@ -25,10 +25,6 @@ class Settings(BaseSettings):
     paypal_client_id: str = ""
     paypal_secret: str = ""
 
-    stripe_public_key: str = ""
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-
     premium_monthly_price: int = 1000
     premium_yearly_price: int = 10000
 
