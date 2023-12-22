@@ -20,7 +20,7 @@ from ..settings import settings
 logger = get_logger(__name__)
 
 
-env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
+env = Environment(loader=FileSystemLoader(Path(__file__).parent / "../../templates"), autoescape=True)
 
 
 @dataclass
