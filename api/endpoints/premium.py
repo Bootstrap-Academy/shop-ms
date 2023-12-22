@@ -32,7 +32,10 @@ async def get_premium_status(user_id: str = get_user(require_self_or_admin=True)
         return PremiumStatus(premium=False, since=None, until=None, autopay=None)
     autopay = await models.PremiumAutopay.get(user_id)
     return PremiumStatus(
-        premium=True, since=row.start.timestamp(), until=row.end.timestamp(), autopay=autopay and autopay.plan.name
+        premium=True,
+        since=row.start.timestamp(),
+        until=row.end.timestamp(),
+        autopay=autopay.plan.name if autopay else None,
     )
 
 
