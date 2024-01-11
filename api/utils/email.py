@@ -46,7 +46,10 @@ class Message:
 BOUGHT_COINS = Message(
     title="Kaufbestätigung - Bootstrap Academy",
     template="bought_coins.html",
-    attachments=[Path("assets/allgemeine_geschaeftsbedingungen.pdf"), Path("assets/widerrufsbelehrung.pdf")],
+    attachments=[
+        Path(__file__).parent / "../../assets/allgemeine_geschaeftsbedingungen.pdf",
+        Path(__file__).parent / "../../assets/widerrufsbelehrung.pdf",
+    ],
 )
 
 

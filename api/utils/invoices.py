@@ -40,7 +40,11 @@ def generate_invoice_pdf(
     t.add(Paragraph(""))
     t.add(
         Image(
-            Path("assets/logo-text.png"), width=183, height=51, horizontal_alignment=Alignment.RIGHT, padding_bottom=24
+            Path(__file__).parent / "../../assets/logo-text.png",
+            width=183,
+            height=51,
+            horizontal_alignment=Alignment.RIGHT,
+            padding_bottom=24,
         )
     )
 

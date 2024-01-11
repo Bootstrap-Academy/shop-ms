@@ -7,7 +7,7 @@ readme = "README.md"
 homepage = "https://github.com/Bootstrap-Academy/shop-ms"
 repository = "https://github.com/Bootstrap-Academy/shop-ms"
 packages = [{ include = "api" }]
-include = ["pyproject.toml", "templates/*"]
+include = ["pyproject.toml", "templates/*", "assets/*"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
