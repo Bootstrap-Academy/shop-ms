@@ -32,7 +32,8 @@ def generate_invoice_pdf(
     page = Page()
     pdf.add_page(page)
 
-    page_layout = SingleColumnLayout(page, vertical_margin=page.get_page_info().get_height() * Decimal(0.05))
+    page_layout = SingleColumnLayout(page)
+    page_layout._margin_top = page_layout._margin_bottom = page.get_page_info().get_height() * Decimal(0.05)
 
     t = Table(number_of_rows=2, number_of_columns=2)
 
@@ -68,7 +69,7 @@ def generate_invoice_pdf(
         t2.add(Paragraph(r))
 
     t2.no_borders()
-    t.add(TableCell(t2, col_span=3))
+    t.add(TableCell(t2, column_span=3))
 
     t2 = Table(number_of_rows=3, number_of_columns=2)
     t2.add(Paragraph("Datum", font="Helvetica-Bold"))
@@ -85,7 +86,7 @@ def generate_invoice_pdf(
 
     t2.no_borders()
     t2.set_padding_on_all_cells(Decimal(2), Decimal(2), Decimal(2), Decimal(2))
-    t.add(TableCell(t2, col_span=2))
+    t.add(TableCell(t2, column_span=2))
 
     t.no_borders()
     page_layout.add(t)
@@ -95,27 +96,27 @@ def generate_invoice_pdf(
     t = Table(number_of_rows=len(products) + 1, number_of_columns=12)
     t.add(
         TableCell(
-            Paragraph("Bezeichnung", font_color=X11Color("White")), col_span=6, background_color=HexColor("0b5156")
+            Paragraph("Bezeichnung", font_color=X11Color("White")), column_span=6, background_color=HexColor("0b5156")
         )
     )
     t.add(
         TableCell(
             Paragraph("Einzelpreis", horizontal_alignment=Alignment.RIGHT, font_color=X11Color("White")),
-            col_span=2,
+            column_span=2,
             background_color=HexColor("0b5156"),
         )
     )
     t.add(
         TableCell(
             Paragraph("Menge", horizontal_alignment=Alignment.RIGHT, font_color=X11Color("White")),
-            col_span=2,
+            column_span=2,
             background_color=HexColor("0b5156"),
         )
     )
     t.add(
         TableCell(
             Paragraph("Gesamtpreis", horizontal_alignment=Alignment.RIGHT, font_color=X11Color("White")),
-            col_span=2,
+            column_span=2,
             background_color=HexColor("0b5156"),
         )
     )
@@ -124,19 +125,19 @@ def generate_invoice_pdf(
     even_color = HexColor("FFFFFF")
     for i, (name, price, cnt) in enumerate(products):
         c = even_color if i % 2 == 0 else odd_color
-        t.add(TableCell(Paragraph(name), col_span=6, background_color=c))
+        t.add(TableCell(Paragraph(name), column_span=6, background_color=c))
         t.add(
             TableCell(
                 Paragraph(f"{price:.{sprec}f} {currency}", horizontal_alignment=Alignment.RIGHT),
-                col_span=2,
+                column_span=2,
                 background_color=c,
             )
         )
-        t.add(TableCell(Paragraph(f"{cnt}", horizontal_alignment=Alignment.RIGHT), col_span=2, background_color=c))
+        t.add(TableCell(Paragraph(f"{cnt}", horizontal_alignment=Alignment.RIGHT), column_span=2, background_color=c))
         t.add(
             TableCell(
                 Paragraph(f"{price*cnt:.{prec}f} {currency}", horizontal_alignment=Alignment.RIGHT),
-                col_span=2,
+                column_span=2,
                 background_color=c,
             )
         )
@@ -148,7 +149,9 @@ def generate_invoice_pdf(
     t = Table(number_of_rows=2 + bool(mwst), number_of_columns=4)
 
     netto = sum(x * y for _, x, y in products)
-    t.add(TableCell(Paragraph("Nettobetrag", font="Helvetica-Bold", horizontal_alignment=Alignment.RIGHT), col_span=3))
+    t.add(
+        TableCell(Paragraph("Nettobetrag", font="Helvetica-Bold", horizontal_alignment=Alignment.RIGHT), column_span=3)
+    )
     t.add(TableCell(Paragraph(f"{netto:.{prec}f} {currency}", horizontal_alignment=Alignment.RIGHT)))
 
     if mwst:
@@ -160,7 +163,7 @@ def generate_invoice_pdf(
                     font="Helvetica-Bold",
                     horizontal_alignment=Alignment.RIGHT,
                 ),
-                col_span=3,
+                column_span=3,
             )
         )
         t.add(TableCell(Paragraph(f"{tax:.{prec}f} {currency}", horizontal_alignment=Alignment.RIGHT)))
@@ -168,7 +171,9 @@ def generate_invoice_pdf(
         tax = Decimal(0)
 
     total = netto + tax
-    t.add(TableCell(Paragraph("Gesamtbetrag", font="Helvetica-Bold", horizontal_alignment=Alignment.RIGHT), col_span=3))
+    t.add(
+        TableCell(Paragraph("Gesamtbetrag", font="Helvetica-Bold", horizontal_alignment=Alignment.RIGHT), column_span=3)
+    )
     t.add(TableCell(Paragraph(f"{total:.{prec}f} {currency}", horizontal_alignment=Alignment.RIGHT)))
 
     t.set_padding_on_all_cells(Decimal(2), Decimal(2), Decimal(2), Decimal(2))
