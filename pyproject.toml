@@ -6,7 +6,7 @@ authors = ["Defelo <defelo@the-morpheus.de>"]
 readme = "README.md"
 homepage = "https://github.com/Bootstrap-Academy/shop-ms"
 repository = "https://github.com/Bootstrap-Academy/shop-ms"
-packages = [{ include = "api" }]
+packages = [{ include = "api" }, { include = "scripts" }]
 include = ["pyproject.toml", "templates/*", "assets/*"]
 
 [tool.poetry.dependencies]
@@ -47,9 +47,11 @@ ruff = "^0.1.13"
 [tool.poetry.scripts]
 api = "api.main:main"
 alembic = "alembic.config:main"
+generate_invoices = "scripts.generate_invoices:main"
 
 [tool.poe.tasks]
 api = { script = "api.main:main", envfile = ".env" }
+generate_invoices = { script = "scripts.generate_invoices:main", envfile = ".env" }
 flake8 = "flake8 . --count --statistics --show-source"
 isort = "isort ."
 black = "black ."
